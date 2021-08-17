@@ -135,8 +135,7 @@ for c in courses:
     elif REQUIRE_PRIORITY_DRIVERS and c in priority_courses:
         model += plp.lpSum( chosen_drivers[d] for d in PRIORITY_DRIVERS if d in coverage[c] ) >= 1
 
-#model+= chosen_drivers['Pauline (Party Time)'] == 0
-#model+= chosen_drivers['Dry Bowser'] == 1
+output = []
 
 model.solve()
 objVal = plp.value(model.objective)
@@ -153,7 +152,6 @@ while objVal == plp.value(model.objective):
         if chosen_drivers[d].varValue == 1:
             OPTIMAL_DRIVERS.add(d)
             
-    output = []
     for d in OPTIMAL_DRIVERS:
         
         unique_courses = set()
