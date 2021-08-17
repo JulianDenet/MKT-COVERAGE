@@ -1,24 +1,30 @@
 import openpyxl as oxl
 import pulp as plp
 import timeit
+import pandas as pd
 
 start = timeit.default_timer()
 
 ###### PROBLEM PARAMETERS
 
+##### THE DEFAULT CONFIGURATION WILL FIND YOU THE SMALLEST-SIZED COMBINATION OF DRIVERS THAT GRANTS FULL TOP SHELF COVERAGE, FOR A PERSONALIZED OUTPUT BASED ON YOUR INVENTORY
+##### PLEASE FOLLOW THE README'S PARAMETERS GUIDELINES
+
 TARGET_LEVEL_7 = False
-ONLY_USE_ADQUIRED_DRIVERS = True
+HIGH_ENDS_ONLY = False
+ONLY_USE_ADQUIRED_DRIVERS = False
 MINIMUM_DRIVERS_PER_COURSE = 2
-CONSIDER_CURRENT_INVESTMENT_LEVELS = True
-REQUIRE_PRIORITY_DRIVERS = True
-MINIMUM_PRIORITY_DRIVERS_PER_COURSE = 2
+CONSIDER_CURRENT_INVESTMENT_LEVELS = False
+REQUIRE_PRIORITY_DRIVERS = False
+MINIMUM_PRIORITY_DRIVERS_PER_COURSE = 2 
 UNAQUIRED_DRIVERS_COST = 2 # Measured in tickets
 PRIORITY_DRIVERS = ['Bowser (Santa)', 'Dry Bones (Gold)', 
 'Gold Koopa (Freerunning)', 'King Bob-omb (Gold)', 'King Boo (Gold)',
-'Mario (Hakama)', 'Mario (Tuxedo)', 'Pauline (Party Time)', 
+'Mario (Hakama)', 'Mario (Tuxedo)', 'Pauline (Party Time)'
 'Peach (Vacation)', 'Pink Gold Peach', 'Rosalina (Swimwear)',
 'Shy Guy (Ninja)', 'Mario (Sunshine)', 
 'Boomerang Bro', 'Donkey Kong', 'Toad (Pit Crew)']
+FIND_ALL_COMBINATIONS = Fale
 
 ###### LOAD DATA
 
@@ -48,16 +54,17 @@ costs = {}
 
 def calculate_driver_cost(tier, driver, current_level, current_tickets):
     
-    calculated_cost = 0
+    if( HIGH_ENDS_ONLY and (tier == 'H' or driver in PRIORITY_DRIVERS) ) or not HIGH_ENDS_ONLY:
+        calculated_cost = -1
+        
+        if current_level < 6:    
+            calculated_cost +=  cost[tier]['cost'] * ( cost[tier]['requirements'][current_level] - current_tickets )
+        
+        calculated_cost +=  cost[tier]['cost'] * (cost[tier]['requirements'][7]) if TARGET_LEVEL_7 and current_level < 7 else 0
     
-    if current_level < 6:    
-        calculated_cost =  cost[tier]['cost'] * ( cost[tier]['requirements'][current_level] - current_tickets )
-    
-    calculated_cost +=  cost[tier]['cost'] * (cost[tier]['requirements'][7]) if TARGET_LEVEL_7 and current_level < 7 else 0
-
-    if ( ONLY_USE_ADQUIRED_DRIVERS and current_level >= 1 ) or not ONLY_USE_ADQUIRED_DRIVERS :
-        drivers.add(driver)
-        costs[driver] = calculated_cost if CONSIDER_CURRENT_INVESTMENT_LEVELS else 1
+        if ( ONLY_USE_ADQUIRED_DRIVERS and current_level >= 1 ) or not ONLY_USE_ADQUIRED_DRIVERS :
+            drivers.add(driver)
+            costs[driver] = calculated_cost if CONSIDER_CURRENT_INVESTMENT_LEVELS else 1
         
     
 # Load driver and iventory data    
@@ -116,7 +123,6 @@ for course in courses_copy:
 # Create the LP problem
 model = plp.LpProblem('MKT_Maximum_Coverage', plp.LpMinimize)
 
-variables = { (d,c) : plp.LpVariable(f'{d},{c}', lowBound=0, upBound=1, cat='Integer') for d in drivers for c in courses }
 chosen_drivers = {d : plp.LpVariable(f'{d}', lowBound=0, upBound=1, cat='Integer') for d in drivers}
 
 # objective function
@@ -125,26 +131,63 @@ model += plp.lpSum( costs[d] * chosen_drivers[d] for d in drivers )
 # Constraint: Cover each course at least once
 for c in courses:
     if not REQUIRE_PRIORITY_DRIVERS or c not in priority_courses:
-        model += plp.lpSum( variables[d,c] for d in coverage[c] ) >= 1
+        model += plp.lpSum( chosen_drivers[d] for d in coverage[c] ) >= 1
     elif REQUIRE_PRIORITY_DRIVERS and c in priority_courses:
-        model += plp.lpSum( variables[d,c] for d in PRIORITY_DRIVERS if d in coverage[c] ) >= 1
-    
-for d in drivers:
-    model += 50 * chosen_drivers[d] >= plp.lpSum( variables[d,c] for c in courses ) 
+        model += plp.lpSum( chosen_drivers[d] for d in PRIORITY_DRIVERS if d in coverage[c] ) >= 1
 
-# Solve the LP model
+#model+= chosen_drivers['Pauline (Party Time)'] == 0
+#model+= chosen_drivers['Dry Bowser'] == 1
+
 model.solve()
-print( plp.LpStatus[model.status] )
-print( plp.value(model.objective))
-
-# Print the solution
-OPTIMAL_DRIVERS = set()
-for d in drivers:
-    if chosen_drivers[d].varValue == 1 and costs[d] > 0:
-        print(f'{d} requires {costs[d]} to max out')
-        OPTIMAL_DRIVERS.add(d)
-
-print(len(OPTIMAL_DRIVERS))
+objVal = plp.value(model.objective)
+iteration = 1
+while objVal == plp.value(model.objective):
+    
+    # Solve the LP model
+    print( plp.LpStatus[model.status] )
+    print( plp.value(model.objective))
+    
+    # Print the solution
+    OPTIMAL_DRIVERS = set()
+    for d in drivers:
+        if chosen_drivers[d].varValue == 1:
+            OPTIMAL_DRIVERS.add(d)
+            
+    output = []
+    for d in OPTIMAL_DRIVERS:
+        
+        unique_courses = set()
+        for c in courses:
+            if d in coverage[c]:
+                n = sum([ 1 if d2 in coverage[c] else 0 for d2 in OPTIMAL_DRIVERS ])
+                if n == 1:
+                    unique_courses.add(c)
+                if d in PRIORITY_DRIVERS:
+                    n = sum([ 1 if d2 in coverage[c] else 0 for d2 in OPTIMAL_DRIVERS.intersection(PRIORITY_DRIVERS) ])
+                    if n == 1:
+                        unique_courses.add(c)
+        x = 1
+        if len(unique_courses) > 0:
+            row = {
+                   'combination' : iteration,
+                   'driver' : d, 'cost':costs[d]+1, 
+                   'unique_coverage': len(unique_courses),
+                   'value': (costs[d]+1)/len(unique_courses),
+                   'unique_courses': str(unique_courses)
+                   }
+            output.append(row)
+        #print(f'{d} costs {costs[d]} to max out and covers {len(unique_courses)} unique courses: \n{unique_courses}')
+        if FIND_ALL_COMBINATIONS:
+            model += plp.lpSum( chosen_drivers[d] for d in OPTIMAL_DRIVERS) <= len(OPTIMAL_DRIVERS) - 1
+            model.solve()
+        else:
+            objVal = -1
+        
+        ans_df = pd.DataFrame(output).sort_values(by=['value'])   
+        ans_df.to_csv('drivers_unique.csv')
+        
+        iteration += 1
+            
 
 stop = timeit.default_timer()
 
