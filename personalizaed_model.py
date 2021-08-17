@@ -24,7 +24,7 @@ PRIORITY_DRIVERS = ['Bowser (Santa)', 'Dry Bones (Gold)',
 'Peach (Vacation)', 'Pink Gold Peach', 'Rosalina (Swimwear)',
 'Shy Guy (Ninja)', 'Mario (Sunshine)', 
 'Boomerang Bro', 'Donkey Kong', 'Toad (Pit Crew)']
-FIND_ALL_COMBINATIONS = True
+FIND_ALL_COMBINATIONS = False
 
 ###### LOAD DATA
 
