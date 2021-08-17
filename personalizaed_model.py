@@ -20,7 +20,7 @@ MINIMUM_PRIORITY_DRIVERS_PER_COURSE = 2
 UNAQUIRED_DRIVERS_COST = 2 # Measured in tickets
 PRIORITY_DRIVERS = ['Bowser (Santa)', 'Dry Bones (Gold)', 
 'Gold Koopa (Freerunning)', 'King Bob-omb (Gold)', 'King Boo (Gold)',
-'Mario (Hakama)', 'Mario (Tuxedo)', 'Pauline (Party Time)'
+'Mario (Hakama)', 'Mario (Tuxedo)', 'Pauline (Party Time)',
 'Peach (Vacation)', 'Pink Gold Peach', 'Rosalina (Swimwear)',
 'Shy Guy (Ninja)', 'Mario (Sunshine)', 
 'Boomerang Bro', 'Donkey Kong', 'Toad (Pit Crew)']
