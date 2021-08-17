@@ -2,8 +2,8 @@ This script allows you to optimize top shelf coverage in Mario Kart tour. It mod
 
 By adjusting the parameters on main.py you can:
 
-* find the least ammount of drivers you need to have complete coverage 
-* using your own inventory as input from the raw.xlsx file, find which drivers to invest into, to achieve maximum coverage while spending the least amount of tickets
+* Find the least ammount of drivers you need to have complete coverage 
+* Using your own inventory as input from the raw.xlsx file, find which drivers to invest into, to achieve maximum coverage while spending the least amount of tickets
 
 Below you will find each parameter and its effect on the model:
 
@@ -38,5 +38,3 @@ A couple examples of parametrization:
 * When all parameters are set to true, the program will find a combination tailored to my inventory, calculating the minimum amount of coins worth of tickets I would need to have a level 7 high end driver in every course, while also guaranteeing that courses with multple coinboxers have at least one of them available for me to use. The output would look like this https://i.imgur.com/2YhHUno.png
 
 TLDR; Feel free to experiment and tune the parameters to find a better fit for whatever you are looking for as a player. However, as a general thumb rule, the more paramaters are to false, the more generic the solution is, the more parameters are set to true, the more personalized and high investment the solution will be.
-
-Finally, for the program to use your own inventory's data, please modify the raw.xlsx file.
