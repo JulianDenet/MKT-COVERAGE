@@ -1,4 +1,4 @@
-This script allows you to optimize top shelf coverage in Mario Kart tour. It models the problem as a set covering problem and find the global optima(s) through linear programming.
+This script allows you to optimize top shelf coverage in Mario Kart tour. It models the problem as a set covering problem and finds the global optima(s) through linear programming.
 
 By adjusting the parameters on main.py you can:
 
@@ -33,3 +33,10 @@ PRIORITY_DRIVERS: The default list of priority drivers cosist of High End and Su
 
 FIND_ALL_COMBINATIONS. Self Explanatory. Keep in mind that if this parameter is set to true the program might have a higher runtime.
 
+A couple examples of parametrization:
+* When all parameters are set to False, the output of the model is a generic combination of the minimum amount of drivers you would need to achieve maximum coverage, like the ones you can find here https://www.reddit.com/r/MarioKartTour/comments/p66nfm/here_are_300_more_combinations_of_17_drivers_each/ 
+* When all parameters are set to true, the program will find a combination tailored to my inventory, calculating the minimum amount of coins worth of tickets I would need to have a level 7 high end driver in every course, while also guaranteeing that courses with multple coinboxers have at least one of them available for me to use. The output would look like this https://i.imgur.com/2YhHUno.png
+
+TLDR; Feel free to experiment and tune the parameters to find a better fit for whatever you are looking for as a player. However, as a general thumb rule, the more paramaters are to false, the more generic the solution is, the more parameters are set to true, the more personalized and high investment the solution will be.
+
+Finally, for the program to use your own inventory's data, please modify the raw.xlsx file.
