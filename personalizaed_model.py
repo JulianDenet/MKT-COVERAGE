@@ -24,7 +24,7 @@ PRIORITY_DRIVERS = ['Bowser (Santa)', 'Dry Bones (Gold)',
 'Peach (Vacation)', 'Pink Gold Peach', 'Rosalina (Swimwear)',
 'Shy Guy (Ninja)', 'Mario (Sunshine)', 
 'Boomerang Bro', 'Donkey Kong', 'Toad (Pit Crew)']
-FIND_ALL_COMBINATIONS = Fale
+FIND_ALL_COMBINATIONS = True
 
 ###### LOAD DATA
 
@@ -142,6 +142,8 @@ objVal = plp.value(model.objective)
 iteration = 1
 while objVal == plp.value(model.objective):
     
+    print(f'Combination Nr. {iteration}:')
+    
     # Solve the LP model
     print( plp.LpStatus[model.status] )
     print( plp.value(model.objective))
@@ -174,17 +176,19 @@ while objVal == plp.value(model.objective):
                    'unique_courses': str(unique_courses)
                    }
             output.append(row)
+    
         #print(f'{d} costs {costs[d]} to max out and covers {len(unique_courses)} unique courses: \n{unique_courses}')
-        if FIND_ALL_COMBINATIONS:
-            model += plp.lpSum( chosen_drivers[d] for d in OPTIMAL_DRIVERS) <= len(OPTIMAL_DRIVERS) - 1
-            model.solve()
-        else:
-            objVal = -1
+    
+    if FIND_ALL_COMBINATIONS:
+        model += plp.lpSum( chosen_drivers[d] for d in OPTIMAL_DRIVERS) <= len(OPTIMAL_DRIVERS) - 1
+        model.solve()
+    else:
+        objVal = -1
         
-        ans_df = pd.DataFrame(output).sort_values(by=['value'])   
-        ans_df.to_csv('drivers_unique.csv')
+    ans_df = pd.DataFrame(output).sort_values(by=['combination','value'])   
+    ans_df.to_csv('drivers_unique.csv')
         
-        iteration += 1
+    iteration += 1
             
 
 stop = timeit.default_timer()
